@@ -1,0 +1,143 @@
+<!-- ===== Tiny News Card (NOS) ===== -->
+<style>
+  :root {
+    --radius: 14px; --pad: 14px; --shadow: 0 6px 18px rgba(0,0,0,.08);
+    --ink: #0b0e12; --muted: #667085; --hair: #e6e8eb; --bg: #ffffff;
+    --calm-bg: #f5fbf7; --calm-ink: #0a3a27; --calm-accent: #2fb67d;
+    --alarm-bg:#fff6f5; --alarm-ink:#521916; --alarm-accent:#d43b2e;
+  }
+  .nos-wrap{max-width:560px;margin:18px auto;font:14px/1.4 system-ui,-apple-system,Segoe UI,Inter,Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+  .nos-card{background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .nos-top{display:flex;gap:8px;align-items:center;padding:10px var(--pad);border-bottom:1px solid var(--hair)}
+  .nos-kicker{font-weight:650;letter-spacing:.3px;font-size:12px;text-transform:uppercase;color:var(--muted)}
+  .nos-dot{width:6px;height:6px;border-radius:50%}
+  .nos-body{padding:16px var(--pad)}
+  .nos-hed{font-weight:780;font-size:18px;margin:0 0 6px}
+  .nos-dek{margin:0 0 12px;color:var(--muted)}
+  .nos-bubble{display:inline-block;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;letter-spacing:.2px}
+  .calm .nos-bubble{background:var(--calm-bg);color:var(--calm-ink);border:1px solid #d9f2e6}
+  .alarm .nos-bubble{background:var(--alarm-bg);color:var(--alarm-ink);border:1px solid #ffd3ce}
+  .calm .nos-dot{background:var(--calm-accent)} .alarm .nos-dot{background:var(--alarm-accent)}
+  .nos-figs{display:flex;flex-wrap:wrap;gap:8px}
+  .nos-fig{border:1px dashed var(--hair);border-radius:8px;padding:8px 10px;min-width:110px;flex:1}
+  .nos-num{font-weight:800;font-size:16px}
+  .nos-tag{display:block;font-size:11px;color:var(--muted)}
+  .nos-foot{display:flex;justify-content:space-between;align-items:center;padding:10px var(--pad);border-top:1px solid var(--hair)}
+  .nos-src{font-size:11px;color:var(--muted);font-variant-caps:all-small-caps}
+  .nos-step{font-size:11px;color:var(--muted)}
+  /* Compact on small screens */
+  @media (max-width:420px){
+    .nos-hed{font-size:16px}
+    .nos-fig{min-width:calc(50% - 8px)}
+  }
+</style>
+
+<div class="nos-wrap">
+  <div id="nos-card" class="nos-card calm" role="article" aria-live="polite"></div>
+  <div class="nos-foot"><span class="nos-src" id="nos-src"></span><span class="nos-step" id="nos-step"></span></div>
+</div>
+
+<script>
+  // --------- Data (12 tiny articles) ----------
+  const NOS_ITEMS = [
+    {kicker:"AI | Care jobs lift", tone:"calm",
+     hed:"More hands to hold: carers swap forms for time at the bedside.",
+     dek:"As admin shrinks, wards feel quieter—hand-holding, last wishes heard, goodbyes less rushed.",
+     figs:[{num:"+2.1 M",tag:"care roles by 2029"},{num:"−40 %",tag:"admin time"}],
+     src:"OECD brief (forecast)"},
+    {kicker:"AI | Clerical work erodes", tone:"alarm",
+     hed:"Your desk just vanished: bots strip the back office bare.",
+     dek:"Invoices file themselves; CVs pile up. Retraining crawls while savings drain.",
+     figs:[{num:"≤18 %",tag:"clerical/paralegal automated by 2030"},{num:"<50 %/yr",tag:"retraining coverage"}],
+     src:"Sector survey & labor model"},
+    {kicker:"Climate | EVs surge past half", tone:"calm",
+     hed:"Breathe and drive in peace: streets hush as exhaust fades.",
+     dek:"Most new cars plug in; school runs mean birdsong, not fumes. Fuel bills shrink for adopters.",
+     figs:[{num:"55 %",tag:"EU new car sales electric by 2029"},{num:"−22 %",tag:"urban NO₂"}],
+     src:"BNEF model & city index"},
+    {kicker:"Climate | Grids jam", tone:"alarm",
+     hed:"Plug. Wait. Pay: stalled wires keep families in petrol longer.",
+     dek:"Charging queues snake around forecourts; budgets bleed at the pump; prams sit in fumes.",
+     figs:[{num:"≈3 yr",tag:"transmission delays"},{num:"+12 M",tag:"extra petrol cars by 2030"}],
+     src:"Grid regulator report"},
+    {kicker:"Macro | Prices cool", tone:"calm",
+     hed:"Exhale—paychecks reach the month’s end again.",
+     dek:"Grocery totals stop jumping; mortgage letters bring smaller numbers; hiring steadies.",
+     figs:[{num:"2–3 %",tag:"inflation by 2028"},{num:"−1.5 pp",tag:"from mortgage peaks"}],
+     src:"IMF outlook"},
+    {kicker:"Macro | Debt squeezes", tone:"alarm",
+     hed:"The slow cut begins: clinics and classrooms feel the blade.",
+     dek:"Budgets thin; hours shorten; fees creep. You pay a little more to get a little less—everywhere.",
+     figs:[{num:">110 % GDP",tag:"advanced-economy debt by 2028"}],
+     src:"Fiscal monitor"},
+    {kicker:"AI | Hospitals speed up", tone:"calm",
+     hed:"Faster doors, kinder wards.",
+     dek:"Triage algorithms clear bottlenecks; nurses gain time to listen, not click; nights feel human.",
+     figs:[{num:"≈−20 %",tag:"wait times by 2028"},{num:"+90 min",tag:"nurse–patient time/day"}],
+     src:"Health system audit"},
+    {kicker:"AI | Entry roles vanish", tone:"alarm",
+     hed:"No first rung: ladders pulled up, lifts for the lucky.",
+     dek:"Call centers and junior desks go dark; internships dissolve; top earners pull ahead.",
+     figs:[{num:"↓ hires",tag:"call centres & junior analysts"},{num:"+10 %",tag:"top-quartile pay"}],
+     src:"Employer panels & payroll data"},
+    {kicker:"Climate | Grids harden", tone:"calm",
+     hed:"Stay cool and carry on: the lights hold when heat bites.",
+     dek:"Reinforced lines ride out scorch days; shop fridges hum; bedrooms stay sleepable.",
+     figs:[{num:"+15 %",tag:"transmission capacity by 2029"},{num:"↓ risk",tag:"blackouts in heatwaves"}],
+     src:"Transmission operator stats"},
+    {kicker:"Climate | Heat days spike", tone:"alarm",
+     hed:"Too hot to earn: the sun turns hostile.",
+     dek:"More 40 °C shifts; bodies buckle; hours are cut as insurance bills climb.",
+     figs:[{num:"+30 %",tag:">40 °C days by 2030 (S. Europe)"},{num:"↑",tag:"premiums"}],
+     src:"Climate service & insurer filings"},
+    {kicker:"Macro | Capital reopens", tone:"calm",
+     hed:"Cranes return: projects restart, paydays feel safe again.",
+     dek:"Cheaper money revives fiber trenches and tram lines; labs light up; hiring boards fill.",
+     figs:[{num:"−100 bp",tag:"EM borrowing vs 2023–24"},{num:"+30 %",tag:"tech/infra invest. 2026–29"}],
+     src:"Market data & investment notes"},
+    {kicker:"Macro | Defaults threaten", tone:"alarm",
+     hed:"When refinancing fails, your cart pays.",
+     dek:"Bills bigger than a fifth of GDP; shelves get pricier; factories shed shifts; tempers rise.",
+     figs:[{num:">20 % GDP",tag:"refinancing needs in several EMs"}],
+     src:"Sovereign risk watchlist"}
+  ];
+
+  // --------- Rendering & rotation ----------
+  const el = document.getElementById("nos-card");
+  const elSrc = document.getElementById("nos-src");
+  const elStep = document.getElementById("nos-step");
+
+  function renderCard(item, i, total){
+    el.className = "nos-card " + (item.tone === "alarm" ? "alarm" : "calm");
+    el.innerHTML = `
+      <div class="nos-top">
+        <span class="nos-dot" aria-hidden="true"></span>
+        <span class="nos-kicker">${item.kicker}</span>
+        <span class="nos-bubble">${item.tone === "alarm" ? "Alert" : "Update"}</span>
+      </div>
+      <div class="nos-body">
+        <h3 class="nos-hed">${item.hed}</h3>
+        <p class="nos-dek">${item.dek}</p>
+        <div class="nos-figs">
+          ${(item.figs||[]).map(f=>`
+             <div class="nos-fig">
+               <div class="nos-num">${f.num}</div>
+               <span class="nos-tag">${f.tag}</span>
+             </div>`).join("")}
+        </div>
+      </div>`;
+    elSrc.textContent = item.src || "";
+    elStep.textContent = `${i+1} / ${total}`;
+  }
+
+  // Rotate cards (default 5 s each; total ≈60 s for 12)
+  let idx = 0; const total = NOS_ITEMS.length; renderCard(NOS_ITEMS[idx], idx, total);
+  const NOS_INTERVAL_MS = 5000;
+  const timer = setInterval(()=>{
+    idx = (idx+1) % total;
+    renderCard(NOS_ITEMS[idx], idx, total);
+  }, NOS_INTERVAL_MS);
+
+  // Optional: stop rotation when user presses a key (for jsPsych control)
+  window.addEventListener("keydown", e => { if(e.key === "Escape"){ clearInterval(timer); }});
+</script>
