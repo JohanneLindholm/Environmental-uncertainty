@@ -1,49 +1,82 @@
-<!-- ===== Tiny News Card (NOS) — Large, Dotless, Cause→Outcome ===== -->
+<!-- ===== NOS Feed — Auto-scrolling vertical newsfeed ===== -->
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NOS Feed</title>
 <style>
-  :root {
-    --radius: 16px; --pad: 22px; --shadow: 0 10px 28px rgba(0,0,0,.10);
-    --ink: #0b0e12; --muted: #5b6776; --hair: #e6e8eb; --bg: #ffffff;
-    --calm-bg: #f3fbf6; --calm-ink: #0a3a27;
+  :root{
+    --radius:16px; --pad:22px; --gap:16px; --shadow:0 10px 28px rgba(0,0,0,.10);
+    --ink:#0b0e12; --muted:#5b6776; --hair:#e6e8eb; --bg:#fff;
+    --calm-bg:#f3fbf6; --calm-ink:#0a3a27;
     --alarm-bg:#fff6f5; --alarm-ink:#521916;
+    --accent-calm:#d7efe4; --accent-alarm:#ffd3ce;
   }
-  .nos-wrap{
-    max-width:820px; margin:24px auto; padding:0 8px;
-    font:18px/1.55 system-ui,-apple-system,Segoe UI,Inter,Roboto,Helvetica,Arial,sans-serif;
-    color:var(--ink)
+  body{margin:0;background:#fafbfc;color:var(--ink);
+       font:18px/1.55 system-ui,-apple-system,Segoe UI,Inter,Roboto,Helvetica,Arial,sans-serif;}
+  .nos-wrap{max-width:840px;margin:24px auto;padding:0 12px}
+  .nos-header{font-weight:800;letter-spacing:.2px;margin:0 0 10px 2px}
+  .nos-viewport{
+    height:720px; overflow:hidden; position:relative; border:1px solid var(--hair);
+    border-radius:18px; background:var(--bg); box-shadow:var(--shadow);
   }
-  .nos-card{background:var(--bg);border:1px solid var(--hair);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-  .nos-top{display:flex;gap:12px;align-items:center;padding:12px var(--pad);border-bottom:1px solid var(--hair)}
-  .nos-kicker{font-weight:700;letter-spacing:.35px;font-size:15px;text-transform:uppercase;color:var(--muted)}
-  .nos-bubble{display:inline-block;border-radius:12px;padding:4px 10px;font-size:12px;font-weight:700;letter-spacing:.2px}
-  .calm .nos-bubble{background:var(--calm-bg);color:var(--calm-ink);border:1px solid #d7efe4}
-  .alarm .nos-bubble{background:var(--alarm-bg);color:var(--alarm-ink);border:1px solid #ffd3ce}
+  /* Top/bottom fade to imply scroll */
+  .nos-viewport::before, .nos-viewport::after{
+    content:""; position:absolute; left:0; right:0; height:56px; pointer-events:none; z-index:5;
+    background:linear-gradient(to bottom, rgba(250,251,252,1), rgba(250,251,252,0));
+  }
+  .nos-viewport::after{
+    top:auto; bottom:0;
+    background:linear-gradient(to top, rgba(250,251,252,1), rgba(250,251,252,0));
+  }
+
+  .nos-feed{will-change:transform}
+  .nos-item{
+    margin: var(--gap); border:1px solid var(--hair); border-radius:var(--radius);
+    background:#fff; overflow:hidden;
+  }
+  .nos-top{display:flex; gap:12px; align-items:center; padding:12px var(--pad);
+          border-bottom:1px solid var(--hair)}
+  .nos-kicker{font-weight:800; letter-spacing:.35px; font-size:15px; text-transform:uppercase; color:var(--muted)}
+  .nos-pill{margin-left:auto; display:inline-block; border-radius:12px; padding:4px 10px;
+            font-size:12px; font-weight:800; letter-spacing:.2px; border:1px solid}
+  .calm .nos-pill{background:var(--calm-bg); color:var(--calm-ink); border-color:var(--accent-calm)}
+  .alarm .nos-pill{background:var(--alarm-bg); color:var(--alarm-ink); border-color:var(--accent-alarm)}
   .nos-body{padding:var(--pad)}
-  .nos-hed{font-weight:800;font-size:26px;line-height:1.25;margin:0 0 10px;letter-spacing:.1px}
-  .nos-dek{margin:0 0 18px;color:var(--muted);font-size:18px}
-  .nos-figs{display:flex;flex-wrap:wrap;gap:10px}
-  .nos-fig{border:1px dashed var(--hair);border-radius:10px;padding:12px 12px;min-width:150px;flex:1}
-  .nos-num{font-weight:850;font-size:20px}
-  .nos-tag{display:block;font-size:13px;color:var(--muted)}
-  .nos-foot{display:flex;justify-content:space-between;align-items:center;padding:12px var(--pad);border-top:1px solid var(--hair)}
-  .nos-src{font-size:12px;color:var(--muted);font-variant-caps:all-small-caps}
-  .nos-step{font-size:12px;color:var(--muted)}
-  /* Compact on small screens */
-  @media (max-width:480px){
-    .nos-hed{font-size:22px}
-    .nos-dek{font-size:17px}
-    .nos-fig{min-width:calc(50% - 10px)}
+  .nos-hed{font-weight:850; font-size:26px; line-height:1.25; margin:0 0 10px}
+  .nos-dek{margin:0 0 18px; color:var(--muted); font-size:18px}
+  .nos-figs{display:flex; flex-wrap:wrap; gap:10px}
+  .nos-fig{border:1px dashed var(--hair); border-radius:10px; padding:12px 12px; min-width:160px; flex:1}
+  .nos-num{font-weight:850; font-size:20px}
+  .nos-tag{display:block; font-size:13px; color:var(--muted)}
+  .nos-src{display:block; padding:10px var(--pad); border-top:1px solid var(--hair);
+           font-size:12px; color:var(--muted); font-variant-caps:all-small-caps}
+
+  /* Larger option: bump base, headings scale automatically */
+  @media (min-width:900px){
+    body{font-size:19px}
+    .nos-hed{font-size:28px}
+  }
+
+  /* Accessibility: if user prefers reduced motion, allow manual scroll */
+  @media (prefers-reduced-motion: reduce){
+    .nos-viewport{overflow:auto}
   }
 </style>
 
 <div class="nos-wrap">
-  <div id="nos-card" class="nos-card calm" role="article" aria-live="polite"></div>
-  <div class="nos-foot"><span class="nos-src" id="nos-src"></span><span class="nos-step" id="nos-step"></span></div>
+  <h1 class="nos-header">Newsfeed Overload Simulator</h1>
+  <div class="nos-viewport" id="viewport">
+    <div class="nos-feed" id="feed"></div>
+  </div>
+  <p style="margin:10px 4px 0;color:#7a8696;font-size:14px">
+    Auto-scrolls every ~4.5 s. Hover or press <strong>Space</strong> to pause/resume. <strong>↑/↓</strong> to change speed.
+  </p>
 </div>
 
 <script>
-  // --------- Data (12 tiny articles) ----------
-  // Copy rewritten to flow Cause → Mechanism → Emotional outcome.
-  const NOS_ITEMS = [
+  // ---------- Data: cause → mechanism → emotional outcome ----------
+  const ITEMS = [
     {kicker:"AI | Care jobs lift", tone:"calm",
      hed:"AI clears paperwork; carers bring back touch and time.",
      dek:"Because admin falls 40%, nurses spend those minutes at bedsides—calmer rooms, warmer goodbyes, dignity in the last days.",
@@ -106,41 +139,80 @@
      src:"Sovereign risk watchlist"}
   ];
 
-  // --------- Rendering & rotation ----------
-  const el = document.getElementById("nos-card");
-  const elSrc = document.getElementById("nos-src");
-  const elStep = document.getElementById("nos-step");
+  // ---------- Render feed ----------
+  const feed = document.getElementById('feed');
+  ITEMS.forEach(addItem);
+  // Duplicate to smooth looping
+  ITEMS.forEach(addItem);
 
-  function renderCard(item, i, total){
-    el.className = "nos-card " + (item.tone === "alarm" ? "alarm" : "calm");
-    el.innerHTML = `
+  function addItem(d){
+    const item = document.createElement('article');
+    item.className = `nos-item ${d.tone==='alarm'?'alarm':'calm'}`;
+    item.innerHTML = `
       <div class="nos-top">
-        <span class="nos-kicker">${item.kicker}</span>
-        <span class="nos-bubble">${item.tone === "alarm" ? "Alert" : "Update"}</span>
+        <span class="nos-kicker">${d.kicker}</span>
+        <span class="nos-pill">${d.tone==='alarm'?'Alert':'Update'}</span>
       </div>
       <div class="nos-body">
-        <h3 class="nos-hed">${item.hed}</h3>
-        <p class="nos-dek">${item.dek}</p>
+        <h3 class="nos-hed">${d.hed}</h3>
+        <p class="nos-dek">${d.dek}</p>
         <div class="nos-figs">
-          ${(item.figs||[]).map(f=>`
+          ${(d.figs||[]).map(f=>`
              <div class="nos-fig">
                <div class="nos-num">${f.num}</div>
                <span class="nos-tag">${f.tag}</span>
-             </div>`).join("")}
+             </div>`).join('')}
         </div>
-      </div>`;
-    elSrc.textContent = item.src || "";
-    elStep.textContent = `${i+1} / ${total}`;
+      </div>
+      <span class="nos-src">${d.src||''}</span>`;
+    feed.appendChild(item);
   }
 
-  // Rotate cards (default 5 s each; total ≈60 s for 12)
-  let idx = 0; const total = NOS_ITEMS.length; renderCard(NOS_ITEMS[idx], idx, total);
-  const NOS_INTERVAL_MS = 5000;
-  const timer = setInterval(()=>{
-    idx = (idx+1) % total;
-    renderCard(NOS_ITEMS[idx], idx, total);
-  }, NOS_INTERVAL_MS);
+  // ---------- Auto-scroll like a feed ----------
+  const viewport = document.getElementById('viewport');
+  let paused = false;
+  let DWELL_MS = 4500;      // time each card sits before scrolling
+  let SCROLL_MS = 650;      // scroll animation time (ms)
 
-  // Optional: stop rotation when user presses Escape (for jsPsych control)
-  window.addEventListener("keydown", e => { if(e.key === "Escape"){ clearInterval(timer); }});
+  // Disable auto-scroll if user prefers reduced motion
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!prefersReduced){ loop(); }
+
+  viewport.addEventListener('mouseenter', ()=> paused = true);
+  viewport.addEventListener('mouseleave', ()=> { paused = false; tick(); });
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.code === 'Space'){ e.preventDefault(); paused = !paused; if(!paused) tick(); }
+    if(e.key === 'ArrowUp'){ DWELL_MS = Math.max(1200, DWELL_MS - 500); }
+    if(e.key === 'ArrowDown'){ DWELL_MS = DWELL_MS + 500; }
+  });
+
+  function loop(){
+    // start after initial dwell
+    setTimeout(tick, DWELL_MS);
+  }
+
+  function tick(){
+    if(paused) return;
+    const first = feed.children[0];
+    if(!first) return;
+
+    // Height to scroll = first card height + its margin-bottom
+    const styles = getComputedStyle(first);
+    const shift = first.getBoundingClientRect().height + parseFloat(styles.marginBottom||'0');
+
+    // Animate feed up by 'shift'
+    feed.style.transition = `transform ${SCROLL_MS}ms ease-in-out`;
+    feed.style.transform = `translateY(-${shift}px)`;
+
+    // After animation, move the first card to the end and reset transform
+    setTimeout(()=>{
+      feed.style.transition = 'none';
+      feed.style.transform = 'translateY(0)';
+      feed.appendChild(first); // recycle card to bottom
+      // Queue next cycle
+      if(!paused){ setTimeout(tick, DWELL_MS); }
+    }, SCROLL_MS + 30);
+  }
 </script>
+</html>
