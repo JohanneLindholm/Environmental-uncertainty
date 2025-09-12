@@ -66,7 +66,7 @@
     <div class="nos-feed" id="feed"></div>
   </div>
   <p style="margin:10px 4px 0;color:#7a8696;font-size:14px">
-    Auto-scrolls every ~4.5 s. Hover or press <strong>Space</strong> to pause/resume. <strong>↑/↓</strong> to change speed.
+    Auto-scrolls every 5 s. Press <strong>Space</strong> to pause for 5 s or toggle resume.
   </p>
 </div>
 
@@ -162,52 +162,67 @@
       <span class="nos-src">${d.src||''}</span>`;
     feed.appendChild(item);
   }
-
+  
   // ---------- Auto-scroll like a feed ----------
-  const viewport = document.getElementById('viewport');
-  let paused = false;
-  let DWELL_MS = 4500;      // time each card sits before scrolling
-  let SCROLL_MS = 650;      // scroll animation time (ms)
+const viewport = document.getElementById('viewport');
+let paused = false;
+let DWELL_MS = 5000;       // fixed 5 seconds
+let SCROLL_MS = 650;       // scroll animation time (ms)
+let pauseTimeout = null;   // track temporary pause timeout
+const statusEl = document.getElementById('status');
 
-  // Disable auto-scroll if user prefers reduced motion
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!prefersReduced){ loop(); }
+// Disable auto-scroll if user prefers reduced motion
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!prefersReduced){ loop(); }
 
-  viewport.addEventListener('mouseenter', ()=> {} );
-  viewport.addEventListener('mouseleave', ()=> {} );
+// No hover pause
+viewport.addEventListener('mouseenter', ()=> {} );
+viewport.addEventListener('mouseleave', ()=> {} );
 
-  document.addEventListener('keydown', (e)=>{
-    if(e.code === 'Space'){ e.preventDefault(); paused = !paused; if(!paused) tick(); }
-    if(e.key === 'ArrowUp'){ DWELL_MS = Math.max(1200, DWELL_MS - 500); }
-    if(e.key === 'ArrowDown'){ DWELL_MS = DWELL_MS + 500; }
-  });
-
-  function loop(){
-    // start after initial dwell
-    setTimeout(tick, DWELL_MS);
+// Spacebar: pause 5s or toggle resume
+document.addEventListener('keydown', (e)=>{
+  if(e.code === 'Space'){ 
+    e.preventDefault();
+    if(paused){
+      // Resume immediately
+      paused = false;
+      clearTimeout(pauseTimeout);
+      statusEl.textContent = "Auto-scrolls every 5 s. Resumed.";
+      tick();
+    } else {
+      // Pause and auto-resume after 5 sec
+      paused = true;
+      statusEl.textContent = "Paused (auto-resume in 5s)…";
+      clearTimeout(pauseTimeout);
+      pauseTimeout = setTimeout(()=>{
+        paused = false;
+        statusEl.textContent = "Auto-scrolls every 5 s. Resumed.";
+        tick();
+      }, 5000);
+    }
   }
+});
 
-  function tick(){
-    if(paused) return;
-    const first = feed.children[0];
-    if(!first) return;
+function loop(){
+  setTimeout(tick, DWELL_MS);
+}
 
-    // Height to scroll = first card height + its margin-bottom
-    const styles = getComputedStyle(first);
-    const shift = first.getBoundingClientRect().height + parseFloat(styles.marginBottom||'0');
+function tick(){
+  if(paused) return;
+  const first = feed.children[0];
+  if(!first) return;
 
-    // Animate feed up by 'shift'
-    feed.style.transition = `transform ${SCROLL_MS}ms ease-in-out`;
-    feed.style.transform = `translateY(-${shift}px)`;
+  const styles = getComputedStyle(first);
+  const shift = first.getBoundingClientRect().height + parseFloat(styles.marginBottom||'0');
 
-    // After animation, move the first card to the end and reset transform
-    setTimeout(()=>{
-      feed.style.transition = 'none';
-      feed.style.transform = 'translateY(0)';
-      feed.appendChild(first); // recycle card to bottom
-      // Queue next cycle
-      if(!paused){ setTimeout(tick, DWELL_MS); }
-    }, SCROLL_MS + 30);
-  }
+  feed.style.transition = `transform ${SCROLL_MS}ms ease-in-out`;
+  feed.style.transform = `translateY(-${shift}px)`;
+
+  setTimeout(()=>{
+    feed.style.transition = 'none';
+    feed.style.transform = 'translateY(0)';
+    feed.appendChild(first);
+    if(!paused){ setTimeout(tick, DWELL_MS); }
+  }, SCROLL_MS + 30);
 </script>
 </html>
