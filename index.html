@@ -173,8 +173,8 @@
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!prefersReduced){ loop(); }
 
-  viewport.addEventListener('mouseenter', ()=> paused = true);
-  viewport.addEventListener('mouseleave', ()=> { paused = false; tick(); });
+  viewport.addEventListener('mouseenter', ()=> {} );
+  viewport.addEventListener('mouseleave', ()=> {} );
 
   document.addEventListener('keydown', (e)=>{
     if(e.code === 'Space'){ e.preventDefault(); paused = !paused; if(!paused) tick(); }
