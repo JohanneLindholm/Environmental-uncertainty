@@ -38,10 +38,6 @@
   .nos-top{display:flex; gap:12px; align-items:center; padding:12px var(--pad);
           border-bottom:1px solid var(--hair)}
   .nos-kicker{font-weight:800; letter-spacing:.35px; font-size:15px; text-transform:uppercase; color:var(--muted)}
-  .nos-pill{margin-left:auto; display:inline-block; border-radius:12px; padding:4px 10px;
-            font-size:12px; font-weight:800; letter-spacing:.2px; border:1px solid}
-  .calm .nos-pill{background:var(--calm-bg); color:var(--calm-ink); border-color:var(--accent-calm)}
-  .alarm .nos-pill{background:var(--alarm-bg); color:var(--alarm-ink); border-color:var(--accent-alarm)}
   .nos-body{padding:var(--pad)}
   .nos-hed{font-weight:850; font-size:26px; line-height:1.25; margin:0 0 10px}
   .nos-dek{margin:0 0 18px; color:var(--muted); font-size:18px}
@@ -151,7 +147,6 @@
     item.innerHTML = `
       <div class="nos-top">
         <span class="nos-kicker">${d.kicker}</span>
-        <span class="nos-pill">${d.tone==='alarm'?'Alert':'Update'}</span>
       </div>
       <div class="nos-body">
         <h3 class="nos-hed">${d.hed}</h3>
