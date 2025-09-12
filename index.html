@@ -65,8 +65,8 @@
   <div class="nos-viewport" id="viewport">
     <div class="nos-feed" id="feed"></div>
   </div>
-  <p style="margin:10px 4px 0;color:#7a8696;font-size:14px">
-    Auto-scrolls every 5 s. Press <strong>Space</strong> to pause for 5 s or toggle resume.
+  <p id="status" style="margin:10px 4px 0;color:#7a8696;font-size:14px">
+  Auto-scrolls every 5 s. Press <strong>Space</strong> to pause for 5 s or toggle resume.
   </p>
 </div>
 
@@ -224,5 +224,6 @@ function tick(){
     feed.appendChild(first);
     if(!paused){ setTimeout(tick, DWELL_MS); }
   }, SCROLL_MS + 30);
+  }
 </script>
 </html>
