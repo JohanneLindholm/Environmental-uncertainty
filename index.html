@@ -8,9 +8,6 @@
   :root{
     --radius:16px; --pad:22px; --gap:16px; --shadow:0 10px 28px rgba(0,0,0,.10);
     --ink:#0b0e12; --muted:#5b6776; --hair:#e6e8eb; --bg:#fff;
-    --calm-bg:#f3fbf6; --calm-ink:#0a3a27;
-    --alarm-bg:#fff6f5; --alarm-ink:#521916;
-    --accent-calm:#d7efe4; --accent-alarm:#ffd3ce;
   }
   body{margin:0;background:#fafbfc;color:var(--ink);
        font:18px/1.55 system-ui,-apple-system,Segoe UI,Inter,Roboto,Helvetica,Arial,sans-serif;}
@@ -143,7 +140,6 @@
 
   function addItem(d){
     const item = document.createElement('article');
-    item.className = `nos-item ${d.tone==='alarm'?'alarm':'calm'}`;
     item.innerHTML = `
       <div class="nos-top">
         <span class="nos-kicker">${d.kicker}</span>
